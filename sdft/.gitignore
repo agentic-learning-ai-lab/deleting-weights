@@ -1,0 +1,8 @@
+# Fetched by setup.sh from Self-Distillation
+upstream
+data
+main.py
+distil_trainer.py
+distil_config.py
+eval_tooluse.py
+eval_science.py

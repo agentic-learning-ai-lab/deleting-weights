@@ -1,0 +1,68 @@
+# GRPO with Deletion Tuning on SimpleRL-Zoo (Zeng et al., 2025, arXiv 2503.18892) with base Qwen models.
+# Qwen2.5-0.5B uses the plain abel prompt instead of the qwen-boxed chat prompt below (see scripts/train_grpo.sh).
+
+defaults:
+  - _generated_ppo_trainer
+  - _self_
+
+algorithm:
+  adv_estimator: grpo
+
+data:
+  train_files:
+    - data/simplerl_zoo/simplelr_qwen_level3to5/train.parquet
+  val_files:
+    - data/simplerl_zoo/eval/qwen/gsm8k.parquet
+    - data/simplerl_zoo/eval/qwen/math500.parquet
+    - data/simplerl_zoo/eval/qwen/minerva.parquet
+    - data/simplerl_zoo/eval/qwen/olympiadbench.parquet
+    - data/simplerl_zoo/eval/qwen/aime24.parquet
+    - data/simplerl_zoo/eval/qwen/amc23.parquet
+  train_batch_size: 256
+  max_prompt_length: 1024
+  max_response_length: 4096
+  filter_overlong_prompts: true
+  dataloader_num_workers: 0
+  seed: 2
+  val_batch_size: 64
+
+actor_rollout_ref:
+  model:
+    path: Qwen/Qwen2.5-7B
+    deletion_tuning: true
+    mask_calib_parquet_files:
+      - data/simplerl_zoo/simplelr_qwen_level3to5/train.parquet
+  actor:
+    ppo_max_token_len_per_gpu: 32768
+    use_dynamic_bsz: true
+    use_kl_loss: true
+    kl_loss_coef: 0.0001
+    entropy_coeff: 0.001
+    optim:
+      lr: 3.0e-4
+    use_remove_padding: true
+    strategy: fsdp2
+    fsdp_config:
+      forward_prefetch: true
+  ref:
+    fsdp_config:
+      param_offload: true
+      forward_prefetch: true
+  rollout:
+    name: vllm
+    tensor_model_parallel_size: 1
+    gpu_memory_utilization: 0.7
+    n: 8
+    max_num_batched_tokens: 16384
+
+reward:
+  reward_manager:
+    name: remote
+
+trainer:
+  project_name: deletion_tuning
+  total_training_steps: 150
+  test_freq: 10
+  save_freq: 10
+  resume_mode: disable
+  logger: [console, wandb, file]

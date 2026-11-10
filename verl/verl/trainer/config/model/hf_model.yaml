@@ -1,0 +1,127 @@
+# Format checks enforced on CI:
+# 1. Comments must appear above each field.
+# 2. There must be a blank line between each field.
+# 3. Inline comments (after a field on the same line) are not allowed.
+# 4. Indentation level is respected for nested fields.
+
+_target_: verl.workers.config.HFModelConfig
+
+# path to the huggingface model
+path: ~/models/deepseek-llm-7b-chat
+
+# config to the huggingface config. In case it is not the same as path
+hf_config_path: null
+
+# path to the huggingface tokenizer. In case it is not the same as path
+tokenizer_path: null
+
+# whether to use shared memory for model loading
+use_shm: False
+
+# whether to trust remote code.
+trust_remote_code: False
+
+# custom chat template for the model
+custom_chat_template: null
+
+# whether to use external libs for the model
+external_lib: null
+
+# override hf config
+override_config: {}
+
+# whether to enable gradient checkpointing. Only valid when we use hf model definition
+enable_gradient_checkpointing: True
+
+# whether to enable activation offload. Only valid when we use hf model definition
+enable_activation_offload: False
+
+# whether to use remove padding. Only valid when we use hf model definition
+use_remove_padding: True
+
+# Set to positive value to enable LoRA (e.g., 32)
+lora_rank: 0
+
+# LoRA scaling factor
+lora_alpha: 16
+
+# Target modules for LoRA adaptation
+target_modules: all-linear
+
+# Exclude modules from LoRA adaptation
+exclude_modules: null
+
+# Path to pre-trained LoRA adapter to load for continued training
+lora_adapter_path: null
+
+# whether to use liger. Only valid when we use hf model definition
+use_liger: False
+
+# whether to use fused kernels.
+use_fused_kernels: False
+
+# fused kernel options.
+fused_kernel_options:
+
+  # the implementation backend for fused kernels.
+  impl_backend: torch
+
+# TiledMLP configuration for memory-efficient MLP computation.
+# Reduces peak memory by processing MLP forward/backward in tiles.
+tiled_mlp:
+
+  # whether to enable TiledMLP
+  enabled: False
+
+  # number of shards to split the input. Higher values reduce peak memory but may slightly impact performance.
+  num_shards: 4
+
+# MTP
+mtp:
+
+  _target_: verl.workers.config.MtpConfig
+
+  enable: False
+  enable_train: False
+  enable_rollout: False
+
+  detach_encoder: False
+  mtp_loss_scaling_factor: 0.1
+
+  speculative_algorithm: EAGLE
+  speculative_num_steps: 3
+  speculative_eagle_topk: 1
+  speculative_num_draft_tokens: 4
+
+  method: mtp
+  num_speculative_tokens: 1
+
+# Deletion Tuning: learn a binary mask over pretrained weights (see src/verl_adapters.py).
+deletion_tuning: false
+
+# Name substrings of the linear layers whose weights get a learnable mask.
+mask_target_modules: [gate_proj]
+
+# Fraction of masked weights the Wanda prior marks for deletion (lowest scores first).
+mask_init_sparsity: 0.00048828125
+
+# Scale of the Wanda prior on the initial mask logits; 0 disables the prior.
+mask_prior_strength: 3.0
+
+# Initial sharpness; the training mask is sigmoid(logit * sharpness), with the sharpness rising linearly.
+mask_sharpness_start: 1000.0
+
+# Final sharpness.
+mask_sharpness_end: 10000.0
+
+# Initial weight of the sparse-weight regularizer, decayed linearly to 0 over training.
+mask_weight_reg: 1.0e-05
+
+# Training parquets whose prompts calibrate the Wanda prior.
+mask_calib_parquet_files: null
+
+# Number of calibration prompts.
+mask_calib_num_samples: 2048
+
+# Maximum token length of each calibration prompt.
+mask_calib_max_prompt_length: 512

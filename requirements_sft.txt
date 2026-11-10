@@ -1,0 +1,6 @@
+# SFT environment (Python 3.10, CUDA 12.6). Install order and commands are in README.md.
+transformers==4.51.3
+accelerate==1.13.0
+datasets==4.8.2
+numpy==1.26.4
+zstandard==0.25.0
